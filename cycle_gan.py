@@ -68,4 +68,15 @@ class CycleGAN:
 
 
 		return fake_A #, fake_B
+	def predict(self, mode):
+		if mode == 'AtoB':
+			output_img = self.generatorG(self.sample_vector, self.sample_meta_data)
+		elif mode == 'BtoA':
+			output_img = self.generatorF(self.sample_vector, self.sample_meta_data)
+		else:
+			raise ValueError("Mode Error")
 
+		output_img = tf.cast(tf.multiply(tf.add(output_img, 1.0), 127.5), tf.uint8)
+
+		return output_img
+		

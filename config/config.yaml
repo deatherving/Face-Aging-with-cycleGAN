@@ -1,22 +1,15 @@
-train:
-  batch_size : 1 # number of batch size for training
-  ngf : 64 # number of generator filters in first conv layer
-  ndf : 64 # number of discriminator filters in first conv layer	
-  lr : 0.0002 # learning rate
-  flip : 1 # flip the image for data argumentation
-  pool_size : 50 # the size of the buffer for training
-  is_peason: 0
-  L1_lambda: 10.0
-  width: 256
-  height: 256
-  epochs: 100
-  train_steps_total: 100000
-  save_step: 5000
-  sample_step: 500
-test:
-  batch_size : 1
-  ngf : 64
-  ndf : 64
-  width: 256
-  height: 256
+batch_size : 1 # number of batch size for training
+ngf : 64 # number of generator filters in first conv layer
+ndf : 64 # number of discriminator filters in first conv layer	
+lr : 0.0002 # learning rate
+flip : 1 # flip the image for data argumentation
+pool_size : 50 # the size of the buffer for training
+is_peason: 0
+L1_lambda: 10.0
+width: 256
+height: 256
+epochs: 100
+train_steps_total: 100000
+save_step: 5000
+sample_step: 500
 

@@ -30,9 +30,9 @@ def img_to_array(img):
 def pixel_normalize(img_array):
 	return img_array / 127.5 - 1
 
-def read_data_corpus(path, width, height):
+def read_data_corpus(directory, width, height):
 	img_corpus = {}
-	for root, subs, files in walk(path):
+	for root, subs, files in walk(directory):
 		if len(subs) != 0:
 			for sub in subs:
 				img_corpus[sub] = []
@@ -45,21 +45,13 @@ def read_data_corpus(path, width, height):
 
 	return img_corpus
 
+def read_data(directory, width, height):
+	img_data = []
 
-def get_class_index(img_corpus):
-	idx = 0
-	
-	class_map = {}
-	
-	for key in img_corpus:
-		class_map[idx] = key
-		idx += 1
-	return class_map
+	for root, subs, files in walk(directory):
+		for f in files:
+			tmpstr = join(root, f)
+			img_data.append(pixel_normalize(img_to_array(load_img(tmpstr, target_size = (width, height)))))
 
-def get_class_len(img_corpus):
-	class_len = {}
+	return np.asarray(img_data)
 
-	for key in img_corpus:
-		class_len[key] = len(img_corpus[key])
-
-	return class_len
