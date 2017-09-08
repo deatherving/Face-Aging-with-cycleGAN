@@ -7,7 +7,7 @@ def dic_key_invert(dic):
 	for key in dic:
 		new_dic[dic[key]] = key
 
-
+	return new_dic
 def get_class_index(img_corpus):
         idx = 0
 
@@ -26,3 +26,9 @@ def get_class_len(img_corpus):
 
         return class_len
 
+def get_keys(dic):
+	keys = []
+	for key in dic:
+		keys.append(int(key))
+
+	return keys	

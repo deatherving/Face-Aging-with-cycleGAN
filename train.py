@@ -7,13 +7,14 @@ import tensorflow as tf
 import numpy as np
 from os.path import join
 from utils.read_config import read_config
-from utils.read_data import read_data_corpus, get_class_index, get_class_len, load_img, img_to_array, pixel_normalize
+from utils.read_data import read_data_corpus, load_img, img_to_array, pixel_normalize
 from utils.meta_initializer import meta_initializer
 from cycle_gan import CycleGAN
-
+from utils.ops import get_keys, dic_key_invert, get_class_len
 
 flags = tf.app.flags
 flags.DEFINE_string('config_path', '' , 'The path of the config file')
+flags.DEFINE_string('class_config', '', 'The path of the class config')
 flags.DEFINE_string('data_dir', '', 'The directory of image data')
 flags.DEFINE_string('sample_dir', '', 'The directory for sampling output')
 flags.DEFINE_string('model_dir', '','The directory of models')
@@ -22,18 +23,17 @@ FLAGS = flags.FLAGS
 
 
 def save_model(saver, sess, step, model_dir):
-	model_name = "cyclegan.ckpt"
+	model_name = "cyclegan"
 	saver.save(sess, join(model_dir, model_name), global_step = step)
 	print "Model and Step {}".format(step), "Saved"
 
 
 def train():
-	train_configs = read_config(FLAGS.config_path)['train']
+	train_configs = read_config(FLAGS.config_path)
+	class_index = dic_key_invert(read_config(FLAGS.class_config))
 
 	# Read Data
 	img_corpus = read_data_corpus(FLAGS.data_dir, int(train_configs['width']), int(train_configs['height']))
-	class_index = get_class_index(img_corpus)
-	print class_index
 	class_len = get_class_len(img_corpus)
 
 	# Init cycle GAN
@@ -53,7 +53,7 @@ def train():
 
 			img_list = []
 			
-			class_range = len(class_index)
+			class_range = get_keys(class_index)
 			
 			class_ids = np.random.choice(class_range, 2, replace = False)
 
