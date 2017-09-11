@@ -7,10 +7,15 @@ import tensorflow.contrib.slim as slim
 
 import numpy as np
 
+def fully_connected(inputs, num_outputs, name = "fc"):
+	with tf.variable_scope(name):
+		return slim.fully_connected(inputs, num_outputs, activation_fn = None, 
+					weights_initializer = tf.truncated_normal_initializer(stddev = stddev), bias_initializer = None)
+
 
 def conv2d(inputs, output_dim, kernel_size, strides, stddev = 0.02, padding = 'SAME', name = 'conv2d'):
 	with tf.variable_scope(name):
-		return slim.conv2d(inputs, output_dim, kernel_size, strides, padding = padding, activation_fn = None, 
+		return slim.conv2d(inputs, output_dim, kernel_size, strides, padding = padding, activation_fn = nn.relu, 
 					weights_initializer = tf.truncated_normal_initializer(stddev = stddev), biases_initializer = None)
 
 # conv2d_transpose equals to deconv2d and nn.SpatialFullConvolution in torch

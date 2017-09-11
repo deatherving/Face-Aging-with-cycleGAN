@@ -37,6 +37,27 @@ class Discriminator:
 	def __call__(self, inputs, meta):
 		return self.build_graph(inputs, meta)
 
+
+class DiscriminatorZ:
+	def __init__(self, ndf, name):
+		self.ndf = ndf
+		self.name = name
+		self.reuse = False
+	def build_graph(self, inputs):
+		with tf.variable_scope(self.name, reuse = self.reuse):
+			f0 = fully_connected(inputs, self.ndf * 4, name = "fully0")
+			f1 = fully_connected(f0, self.ndf * 2, name = "fully1")
+			f2 = fully_connected(f1, self.ndf, name = "fully2")
+			f3 = fully_connected(f2, 1, name = "fully3")
+			
+		self.reuse = True
+		self.variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope = self.name)
+		return f3
+	
+	def __call__(self, inputs):
+		return self.build_graph(inputs)
+
+
 if __name__ == '__main__':
 	image = np.random.random([1, 256, 256, 3]).astype('float32')
 	meta = np.random.random([1, 256, 256, 3]).astype('float32')
