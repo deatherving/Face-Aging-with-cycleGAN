@@ -8,4 +8,4 @@ Let's rock it.
 
 Progress:
 
-I've finished the model structure of conditional cycle GAN. Thanks to the reference code of XHUJOY(https://github.com/XHUJPY/CycleGAN-tensorflow) and junyanz(https://github.com/junyanz/CycleGAN)
+None

@@ -6,10 +6,11 @@ from net_block import *
 
 
 class Encoder:
-	def __init__(self, nef, name):
+	def __init__(self, nef, z_dim, name):
 		self.reuse = False
 		self.nef = nef
 		self.name = name
+		self.z_dim = z_dim
 	def build_graph(self, inputs):
 		with tf.variable_scope(self.name, reuse = self.reuse):
 			# we could concat the meta data with the inputs or with the result of first conv2d, let's try the former one
@@ -29,15 +30,21 @@ class Encoder:
                         r7 = build_resnet_block(r6, self.nef * 4, name = 'res_r7')
                         r8 = build_resnet_block(r7, self.nef * 4, name = 'res_r8')
 
-			output = tf.nn.tanh(r8)
+			# the manifold is [batch_size, 50]
+			f0 = fully_connected(flatten(r8), self.z_dim)
+			
+			output = tf.nn.tanh(f0)
 
 		self.reuse = True
 		self.variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope = self.name)
 		return output
 
+	def __call__(self, inputs):
+		return self.build_graph(inputs)
+
 
 if __name__ == '__main__':
-	image = np.random.random([1, 128, 128, 3]).astype('float32')
+	image = np.random.random([1, 256, 256, 3]).astype('float32')
 
 	e = Encoder(64, "Encoder")
 

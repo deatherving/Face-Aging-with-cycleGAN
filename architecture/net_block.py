@@ -7,15 +7,15 @@ import tensorflow.contrib.slim as slim
 
 import numpy as np
 
-def fully_connected(inputs, num_outputs, name = "fc"):
+def fully_connected(inputs, num_outputs, stddev = 0.02, name = "fc"):
 	with tf.variable_scope(name):
-		return slim.fully_connected(inputs, num_outputs, activation_fn = None, 
-					weights_initializer = tf.truncated_normal_initializer(stddev = stddev), bias_initializer = None)
+		return slim.fully_connected(inputs, num_outputs, activation_fn = tf.nn.relu, 
+					weights_initializer = tf.truncated_normal_initializer(stddev = stddev), biases_initializer = None)
 
 
 def conv2d(inputs, output_dim, kernel_size, strides, stddev = 0.02, padding = 'SAME', name = 'conv2d'):
 	with tf.variable_scope(name):
-		return slim.conv2d(inputs, output_dim, kernel_size, strides, padding = padding, activation_fn = nn.relu, 
+		return slim.conv2d(inputs, output_dim, kernel_size, strides, padding = padding, activation_fn = None, 
 					weights_initializer = tf.truncated_normal_initializer(stddev = stddev), biases_initializer = None)
 
 # conv2d_transpose equals to deconv2d and nn.SpatialFullConvolution in torch
@@ -60,4 +60,6 @@ def build_resnet_block(x, dim, name, kernel_size = 3, strides = 1):
 def leakyrelu(x, alpha = 0.2):
 	return tf.maximum(x, alpha * x)
 
-
+def flatten(x):
+	return slim.flatten(x)
+	
