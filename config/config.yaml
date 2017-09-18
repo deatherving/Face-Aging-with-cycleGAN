@@ -15,3 +15,6 @@ age_segment: 10
 gender_segment: 2
 z_dim: 50
 batch_size: 128
+loss_control: 0.001
+beta1: 0.5
+sample_epoch: 1
