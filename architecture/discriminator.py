@@ -1,45 +1,36 @@
 # -*- coding: utf-8 -*-
-# author: K
+# author K
 
 import tensorflow as tf
-from net_block import *
+from net_blocks import *
 
 class Discriminator:
 	def __init__(self, ndf, name):
-		self.reuse = False
 		self.ndf = ndf
 		self.name = name
+		self.reuse = False
 	def build_graph(self, inputs, ages, genders):
 		with tf.variable_scope(self.name, reuse = self.reuse):
+			c0 = tf.nn.relu(batch_norm(conv2d(inputs, self.ndf, 5, 2, name = "conv0"), name = "batch_norm0"))
+			c_c0 = tf.concat([c0, ages], axis = 3)
+			c_c1 = tf.concat([c_c0, genders], axis = 3)
 
-			c0 = conv2d(inputs, self.ndf, 4, 2, name = "conv2d_c0")
-			l0 = leakyrelu(c0)
+			c1 = tf.nn.relu(batch_norm(conv2d(c_c1, self.ndf * 2, 5, 2, name = "conv1"), name = "batch_norm1"))
 
-			# add the conditions age and gender as a feature map rather than a original input, I saw a lot of fellows did like this so I eventually followed.
-			c_l0 = tf.concat([l0, ages], axis = 3)
-			c_l0 = tf.concat([c_l0, genders], axis = 3)
+			c2 = tf.nn.relu(batch_norm(conv2d(c1, self.ndf * (2**2), 5, 2, name = "conv2"), name = "batch_norm2"))
+			c3 = tf.nn.relu(batch_norm(conv2d(c2, self.ndf * (2**3), 5, 2, name = "conv3"), name = "batch_norm3"))
 
-			c1 = conv2d(l0, self.ndf * 2, 4, 2, name = "conv2d_c1")
-			l1 = leakyrelu(instance_norm(c1, name = "instance_norm_l1"))
-			c2 = conv2d(l1, self.ndf * 4, 4, 2, name = 'conv2d_c2')
-			l2 = leakyrelu(instance_norm(c2, name = "instance_norm_l2"))
+			f0 = leakyrelu(fully_connected(flatten(c3), 1024, name = "fc0"))
+
+			f1 = fully_connected(f0, 1, name = "fc1")
 			
-			c3 = conv2d(l2, self.ndf * 3, 4, 1, name = 'conv2d_c3')
-			l3 = leakyrelu(instance_norm(c3, name = 'instance_norm_l3'))
-	
-			c4 = conv2d(l3, 1, 4, 1, name = "conv2d_c4")
-
 		self.reuse = True
 		self.variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope = self.name)
 		
-		# Actually we could apply sigmoid layer here. However, least square GAN supports logits instead of probabilities. So, I followed it.
-		# The least square GAN is implemented in another repository. You could check it.
-		return c4
-
-
+		return f1
+	
 	def __call__(self, inputs, ages, genders):
 		return self.build_graph(inputs, ages, genders)
-
 
 class DiscriminatorZ:
 	def __init__(self, ndf, name):
@@ -48,13 +39,17 @@ class DiscriminatorZ:
 		self.reuse = False
 	def build_graph(self, inputs):
 		with tf.variable_scope(self.name, reuse = self.reuse):
-			f0 = fully_connected(inputs, self.ndf * 4, name = "fully0")
-			f1 = fully_connected(f0, self.ndf * 2, name = "fully1")
-			f2 = fully_connected(f1, self.ndf, name = "fully2")
-			
+			f0 = tf.nn.relu(batch_norm(fully_connected(inputs, self.ndf, name = "fc0"), name = "batch_norm0"))
+			f1 = tf.nn.relu(batch_norm(fully_connected(f0, self.ndf / 2, name = "fc1"), name = "batch_norm1"))
+			f2 = tf.nn.relu(batch_norm(fully_connected(f1, self.ndf / 4, name = "fc2"), name = "batch_norm2"))
+			f3 = tf.nn.relu(batch_norm(fully_connected(f2, self.ndf / 8, name = "fc3"), name = "batch_norm3"))
+
+			f4 = fully_connected(flatten(f3), 1, name = "fc4")
+
 		self.reuse = True
 		self.variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope = self.name)
-		return f2
+		
+		return f4
 	
 	def __call__(self, inputs):
 		return self.build_graph(inputs)
@@ -62,11 +57,11 @@ class DiscriminatorZ:
 
 
 if __name__ == '__main__':
-	image = np.random.random([1, 256, 256, 3]).astype('float32')
-	ages = np.random.random([1, 128, 128, 10]).astype('float32')
-	genders = np.random.random([1, 128, 128, 2]).astype('float32')
+	inputs = np.random.random([128, 128, 128, 3]).astype('float32')
+	ages = np.random.random([128, 64, 64, 10]).astype('float32')
+	genders = np.random.random([128, 64, 64, 2]).astype('float32')
 
-	d = Discriminator(64, "DiscriminatorA")
+	d = Discriminator(16, "Discriminator")
 
-	print d.build_graph(image, ages, genders).get_shape()
-
+	print d(inputs, ages, genders).get_shape()
+	

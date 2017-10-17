@@ -1,51 +1,45 @@
 # -*- coding: utf-8 -*-
 # author: K
 
+
 import tensorflow as tf
-from net_block import *
+from net_blocks import *
+
+import numpy as np
 
 
 class Encoder:
 	def __init__(self, nef, z_dim, name):
-		self.reuse = False
 		self.nef = nef
-		self.name = name
+		self.reuse = False
 		self.z_dim = z_dim
+		self.name = name
 	def build_graph(self, inputs):
 		with tf.variable_scope(self.name, reuse = self.reuse):
-			# we could concat the meta data with the inputs or with the result of first conv2d, let's try the former one
-                        p0 = tf.pad(inputs, [[0, 0], [3, 3], [3, 3], [0, 0]], "REFLECT")
-                        c0 = tf.nn.relu(instance_norm(conv2d(p0, self.nef, 7, 1,  padding = 'VALID', name = 'conv2d_c0'), name = 'instance_norm_c0'))
-                        c1 = tf.nn.relu(instance_norm(conv2d(c0, self.nef * 2, 3, 2, name = 'conv2d_c1'), name = 'instance_norm_c1'))
-                        c2 = tf.nn.relu(instance_norm(conv2d(c1, self.nef * 4, 3, 2, name = 'conv2d_c2'), name = 'instance_norm_c2'))
+			c0 = tf.nn.relu(conv2d(inputs, self.nef, 5, 2, name = "conv2d_c0"))
+			c1 = tf.nn.relu(conv2d(c0, self.nef * 2, 5, 2, name = "conv2d_c1"))
+			c2 = tf.nn.relu(conv2d(c1, self.nef * 2 * 2, 5, 2, name = "conv2d_c2"))
+			c3 = tf.nn.relu(conv2d(c2, self.nef * 2 ** 3, 5, 2, name = "conv2d_c3"))
 
-                        #build resnet
-                        r0 = build_resnet_block(c2, self.nef * 4, name = 'res_r0')
-                        r1 = build_resnet_block(r0, self.nef * 4, name = 'res_r1')
-                        r2 = build_resnet_block(r1, self.nef * 4, name = 'res_r2')
-                        r3 = build_resnet_block(r2, self.nef * 4, name = 'res_r3')
-                        r4 = build_resnet_block(r3, self.nef * 4, name = 'res_r4')
-                        r5 = build_resnet_block(r4, self.nef * 4, name = 'res_r5')
-			r6 = build_resnet_block(r5, self.nef * 4, name = 'res_r6')
-                        r7 = build_resnet_block(r6, self.nef * 4, name = 'res_r7')
-                        r8 = build_resnet_block(r7, self.nef * 4, name = 'res_r8')
+		
+			fc0 = fully_connected(flatten(c3), self.z_dim, name = "fc0")
 
-			# the manifold is [batch_size, 50]
-			f0 = fully_connected(flatten(r8), self.z_dim)
-			
-			output = tf.nn.tanh(f0)
+		output = tf.nn.tanh(fc0)
 
 		self.reuse = True
 		self.variables = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope = self.name)
 		return output
+
 
 	def __call__(self, inputs):
 		return self.build_graph(inputs)
 
 
 if __name__ == '__main__':
-	image = np.random.random([1, 256, 256, 3]).astype('float32')
+	inputs = np.random.random([128, 128, 128, 3]).astype('float32')
 
-	e = Encoder(64, "Encoder")
+	encoder = Encoder(64, 50, "Encoder")
 
-	print e.build_graph(image).get_shape()
+	print encoder(inputs).get_shape()
+
+	

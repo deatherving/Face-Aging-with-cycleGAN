@@ -60,10 +60,40 @@ def read_data_name(directory):
 
 	for root, subs, files in walk(directory):
 		for f in files:
-			tmpstr = join(root, f)
-			img_names.append(tmpstr)
+			if f.endswith('jpg') or f.endswith('jpeg') or f.endswith('png'):
+				tmpstr = join(root, f)
+				img_names.append(tmpstr)
 
 	return img_names
+
+
+def read_data_shuffle(directory, width, height):
+	img_names = []
+
+	for root, subs, files in walk(directory):
+		for f in files:
+			if f.endswith('jpg') or f.endswith('jpeg') or f.endswith('png'):
+				tmpstr = join(root, f)
+				img_names.append(tmpstr)
+
+	np.random.shuffle(img_names)
+
+	img_data = []
+
+	data_size = len(img_names)
+	idx = 0
+
+	for name in img_names:
+		if idx % 1000 == 0 and idx != 0:
+			print "[*] Read data progress {}%".format(float(idx) / float(data_size) * 100)
+
+
+		img_data.append(pixel_normalize(img_to_array(load_img(name, target_size = (width, height)))))
+		idx += 1
+
+	return img_names, img_data
+	
+
 
 def make_one_hot(label, segment_num, range_segment):
 	if len(range_segment) != segment_num:
@@ -78,12 +108,12 @@ def make_one_hot(label, segment_num, range_segment):
 		if r[0] >= r[1]:
 			raise "Segment Range Error"
 		if r[0] <= label < r[1]:
-			res[idx] = 1
+			res[idx] = 1.0
 		idx += 1
 
 	return res
 
-def read_data_batch(names, width, height, age_segment_num = 10, gender_segment_num = 2):
+def read_data_batch(names, age_segment_num = 10, gender_segment_num = 2):
 	img_data = []
 	age_data = []
 	gender_data = []
@@ -92,7 +122,7 @@ def read_data_batch(names, width, height, age_segment_num = 10, gender_segment_n
 			age = int(splitext(bname)[0].split('_')[0])
 			gender = int(splitext(bname)[0].split('_')[1])
 			# reserve race for future use
-			race = int(splitext(bname)[0].split('_')[2])
+			#race = int(splitext(bname)[0].split('_')[2])
 
 			age_seg = make_one_hot(age, age_segment_num, 
 					[(0, 6),
@@ -114,9 +144,13 @@ def read_data_batch(names, width, height, age_segment_num = 10, gender_segment_n
 
 			age_data.append(age_seg)
 			gender_data.append(gender_seg)
-			img_data.append(pixel_normalize(img_to_array(load_img(item, target_size = (width, height)))))
 				
 	# return the image batch, one-hot age batch and one-hot gender batch
-	return np.asarray(img_data), np.asarray(age_data), np.asarray(gender_data)
+	return np.asarray(age_data), np.asarray(gender_data)
 
+def read_cond(item):
+	bname = basename(item)
+	age = int(splitext(bname)[0].split('_')[0])
+	gender = int(splitext(bname)[0].split('_')[1])
 
+	return age, gender

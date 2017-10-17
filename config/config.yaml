@@ -1,20 +1,23 @@
-batch_size : 1 # number of batch size for training
 ngf : 64 # number of generator filters in first conv layer
-ndf : 64 # number of discriminator filters in first conv layer	
-ndzf: 16
+ndf : 16 # number of discriminator filters in first conv layer	
+ndzf: 64
 nef : 64
+decay_rate : 0.96
 lr : 0.0002 # learning rate
 flip : 1 # flip the image for data argumentation
 pool_size : 50 # the size of the buffer for training
 is_peason: 0
-width: 256
-height: 256
-image_align_size: 256 
+width: 128
+height: 128
+image_align_size: 128
 epochs: 100
 age_segment: 10
 gender_segment: 2
 z_dim: 50
 batch_size: 128
-loss_control: 0.001
+loss_control: 0.00005
 beta1: 0.5
 sample_epoch: 1
+test_size: 1
+sample_size: 1
+save_epoch: 1
